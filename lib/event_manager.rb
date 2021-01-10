@@ -3,6 +3,7 @@
 require 'csv'
 require 'google/apis/civicinfo_v2'
 require 'erb'
+require 'date'
 
 template_letter = File.read 'form_letter.erb'
 erb_template = ERB.new template_letter
@@ -48,16 +49,32 @@ def clean_phone_number(phone_number)
   end
 end
 
+def most_occuring(array)
+  count = array.tally
+  highest_value = 0
+  count.each_value { |value| highest_value = value if value > highest_value }
+  count.keep_if { |key, value| value == highest_value}.keys
+end
+
 puts 'EventManager Initialize!'
+hours = []
+days_of_week = []
 
 contents = CSV.open 'event_attendees.csv', headers: true, header_converters: :symbol
 contents.each do |row|
   id = row[0]
   name = row[:first_name]
   phone_number = clean_phone_number(row[:homephone])
+  date = DateTime.strptime(row[:regdate], '%m/%d/%y %H:%M')
+
+  hours.push date.hour
+  days_of_week.push Date::DAYNAMES[date.wday]
   #zipcode = clean_zipcode(row[:zipcode])
   #legislators = legislators_by_zipcode(zipcode)
   #form_letter = erb_template.result(binding)
   #save_thank_you_letter(id, form_letter)
-  puts "#{name} #{phone_number}"
 end
+
+puts "Most Active Hours: #{most_occuring(hours)}"
+puts "Most Active Days: #{most_occuring(days_of_week)}"
+
