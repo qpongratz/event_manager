@@ -36,14 +36,28 @@ def save_thank_you_letter(id, form_letter)
   end
 end
 
+def clean_phone_number(phone_number)
+  phone_array = phone_number.to_s.split('').keep_if { |char| char.between?('0', '9')}
+  case phone_array.length
+  when 10
+    phone_array.join('')
+  when 11
+    phone_array.length[0] == 1 ? phone_array[1..10].join('') : 'Bad number'
+  else
+    'Bad number'
+  end
+end
+
 puts 'EventManager Initialize!'
 
 contents = CSV.open 'event_attendees.csv', headers: true, header_converters: :symbol
 contents.each do |row|
   id = row[0]
   name = row[:first_name]
-  zipcode = clean_zipcode(row[:zipcode])
-  legislators = legislators_by_zipcode(zipcode)
-  form_letter = erb_template.result(binding)
-  save_thank_you_letter(id, form_letter)
+  phone_number = clean_phone_number(row[:homephone])
+  #zipcode = clean_zipcode(row[:zipcode])
+  #legislators = legislators_by_zipcode(zipcode)
+  #form_letter = erb_template.result(binding)
+  #save_thank_you_letter(id, form_letter)
+  puts "#{name} #{phone_number}"
 end
